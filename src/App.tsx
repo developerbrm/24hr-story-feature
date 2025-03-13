@@ -1,3 +1,4 @@
+import { Flip, ToastContainer } from 'react-toastify'
 import HelperSection from './assets/components/HelperSection'
 import Stories from './assets/components/Stories'
 import StoriesContextProvider from './Context/StoriesContextProvider'
@@ -10,6 +11,8 @@ function App() {
 
         <HelperSection />
       </div>
+
+      <ToastContainer autoClose={1500} transition={Flip} />
     </StoriesContextProvider>
   )
 }
