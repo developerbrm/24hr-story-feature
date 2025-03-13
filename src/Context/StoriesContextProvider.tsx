@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
+import { getImagesFromDB } from '../utilities'
 import { StoriesContext } from './StoriesContext'
 
-export type StoriesType = { file: File; data: string }[] | null
+export type StoryType = { fileName: string; data: string; isWatched: boolean }
+export type StoriesTypeArr = StoryType[] | null
 export type CurrentSelectedStoryType = string | null
 
 export interface StoriesContextInterface {
-  stories: StoriesType
-  setStories: React.Dispatch<React.SetStateAction<StoriesType>>
+  stories: StoriesTypeArr
+  setStories: React.Dispatch<React.SetStateAction<StoriesTypeArr>>
   currentSelectedStory: CurrentSelectedStoryType
   setCurrentSelectedStory: React.Dispatch<
     React.SetStateAction<CurrentSelectedStoryType>
@@ -18,9 +20,16 @@ const StoriesContextProvider = ({
 }: {
   children: React.ReactNode
 }) => {
-  const [stories, setStories] = useState<StoriesType>(null)
+  const [stories, setStories] = useState<StoriesTypeArr>(null)
   const [currentSelectedStory, setCurrentSelectedStory] =
     useState<CurrentSelectedStoryType>(null)
+
+  useLayoutEffect(() => {
+    const data = getImagesFromDB()
+    if (!data?.length) return
+
+    setStories(() => data)
+  }, [])
 
   const contextValue = useMemo(
     () => ({

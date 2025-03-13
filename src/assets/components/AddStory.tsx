@@ -1,13 +1,14 @@
 import React, { useContext } from 'react'
 import { IoAddOutline } from 'react-icons/io5'
+import { toast } from 'react-toastify'
+import { StoriesContext } from '../../Context/StoriesContext'
+import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
 import {
+  commonStoriesClasses,
   getErrorMessage,
   handleFileItem,
   updateImagesDB,
 } from '../../utilities'
-import { StoriesContext } from '../../Context/StoriesContext'
-import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
-import { toast } from 'react-toastify'
 
 const AddStory = () => {
   const { setStories } = useContext<StoriesContextInterface>(StoriesContext)
@@ -15,16 +16,11 @@ const AddStory = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return
 
-    const imagesDataMap = new Map<string, string>()
     const allPromises = [...e.target.files].map(handleFileItem)
 
     Promise.all(allPromises)
       .then((data) => {
-        data.forEach((obj) => {
-          imagesDataMap.set(obj.file.name, obj.data)
-        })
-
-        updateImagesDB(imagesDataMap)
+        updateImagesDB(data)
         setStories(data)
       })
       .catch((err) => {
@@ -36,7 +32,9 @@ const AddStory = () => {
 
   return (
     <div>
-      <label className="grid aspect-square w-14 cursor-pointer place-content-center rounded-full text-slate-600 ring-2 ring-slate-600">
+      <label
+        className={`${commonStoriesClasses} border-2 border-slate-600 text-slate-600`}
+      >
         <IoAddOutline size={22} strokeWidth={2} />
 
         <input
