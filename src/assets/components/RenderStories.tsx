@@ -7,7 +7,7 @@ const RenderStories = () => {
   const { stories } = useContext<StoriesContextInterface>(StoriesContext)
 
   return (
-    <div className="flex items-center justify-start gap-2">
+    <div className="grid grid-flow-col items-center justify-start gap-2 p-5 pl-0">
       {stories?.map((story) => (
         <StoryItem story={story} key={story.fileName} />
       ))}
