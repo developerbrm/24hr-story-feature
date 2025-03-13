@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { StoriesContext } from './StoriesContext'
 
-export type StoriesType = object[] | null
+export type StoriesType = { file: File; data: string }[] | null
 export type CurrentSelectedStoryType = string | null
 
 export interface StoriesContextInterface {

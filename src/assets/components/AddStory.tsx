@@ -1,11 +1,37 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { IoAddOutline } from 'react-icons/io5'
+import {
+  getErrorMessage,
+  handleFileItem,
+  updateImagesDB,
+} from '../../utilities'
+import { StoriesContext } from '../../Context/StoriesContext'
+import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
+import { toast } from 'react-toastify'
 
 const AddStory = () => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const filesUrls = [...e.target.files].map(URL.createObjectURL)
+  const { setStories } = useContext<StoriesContextInterface>(StoriesContext)
 
-    console.log(filesUrls)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return
+
+    const imagesDataMap = new Map<string, string>()
+    const allPromises = [...e.target.files].map(handleFileItem)
+
+    Promise.all(allPromises)
+      .then((data) => {
+        data.forEach((obj) => {
+          imagesDataMap.set(obj.file.name, obj.data)
+        })
+
+        updateImagesDB(imagesDataMap)
+        setStories(data)
+      })
+      .catch((err) => {
+        console.error(err)
+
+        toast.error(getErrorMessage(err))
+      })
   }
 
   return (
@@ -19,7 +45,7 @@ const AddStory = () => {
           name="add-stories"
           title="add-stories"
           type="file"
-          accept="video/*, image/*"
+          accept="image/*"
           onChange={handleChange}
         />
       </label>
