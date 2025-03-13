@@ -38,8 +38,8 @@ const StoryItem = (props: IStoryItem) => {
         src={story.data}
         alt={story.fileName}
         title={story.fileName}
-        className={`absolute inset-0 block h-full w-full overflow-hidden rounded-full border-3 object-cover object-center p-0 ${
-          story.isWatched ? 'border-amber-600/20' : 'border-amber-600'
+        className={`absolute inset-0 block h-full w-full overflow-hidden rounded-full border-3 object-cover object-center p-0 transition-all hover:scale-105 hover:opacity-80 ${
+          story.isWatched ? 'border-amber-600/20' : 'border-rose-600'
         }`}
       />
     </button>

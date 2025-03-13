@@ -33,7 +33,7 @@ const AddStory = () => {
   return (
     <div className="sticky left-0 z-10 p-5 backdrop-blur-sm">
       <label
-        className={`${commonStoriesClasses} border-2 border-slate-600 text-slate-600`}
+        className={`${commonStoriesClasses} border-2 border-slate-600 text-slate-600 transition-all hover:scale-105 hover:border-amber-600 hover:text-amber-600`}
       >
         <IoAddOutline size={22} strokeWidth={2} />
 
