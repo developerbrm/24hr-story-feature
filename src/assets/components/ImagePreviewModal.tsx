@@ -2,7 +2,7 @@ import { IoClose } from 'react-icons/io5'
 import { Delay, PROGRESS_DELAY } from '../../utilities'
 import { StoriesContext } from '../../Context/StoriesContext'
 import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import ProgressComponent from './ProgressComponent'
 
 const d = new Delay()
@@ -15,12 +15,15 @@ const ImagePreviewModal = () => {
     handleImagePreviewModalOpenClose,
   } = useContext<StoriesContextInterface>(StoriesContext)
 
+  const [showProgressBar, setShowProgressBar] = useState(false)
   const story = stories?.[currentSelectedStory]
 
   useEffect(() => {
+    setShowProgressBar(true)
     d.delay(PROGRESS_DELAY, () => {
       setCurrentSelectedStory((prevValue) => {
         const n = stories?.length ?? 0
+        setShowProgressBar(false)
 
         if (n <= prevValue + 1) {
           return 0
@@ -40,7 +43,7 @@ const ImagePreviewModal = () => {
         className="modal !bg-transparent backdrop-blur-xs transition-all will-change-auto"
       >
         <div className="modal-box relative h-11/12 w-11/12 !max-w-7xl shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]">
-          <ProgressComponent />
+          {showProgressBar && <ProgressComponent />}
           <IoClose
             className="absolute top-3 right-3 z-10 cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110"
             onClick={() => handleImagePreviewModalOpenClose(false)}
