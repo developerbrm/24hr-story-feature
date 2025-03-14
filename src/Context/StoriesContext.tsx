@@ -4,7 +4,7 @@ import { StoriesContextInterface } from './StoriesContextProvider'
 const defaultContextValue = {
   stories: null,
   setStories: () => null,
-  currentSelectedStory: null,
+  currentSelectedStory: 0,
   setCurrentSelectedStory: () => null,
 }
 
