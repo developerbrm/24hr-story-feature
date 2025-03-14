@@ -60,3 +60,11 @@ export const getErrorMessage = (err: {
     'Something went wrong'
   )
 }
+
+export const handleImagePreviewModalOpenClose = (open: boolean = true) => {
+  const element: null | HTMLDialogElement = document.querySelector(
+    '#image-preview-modal'
+  )
+  const method = open ? 'showModal' : 'close'
+  element?.[method]()
+}

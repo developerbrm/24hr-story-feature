@@ -1,18 +1,16 @@
 import { useLayoutEffect, useMemo, useState } from 'react'
 import { getImagesFromDB } from '../utilities'
 import { StoriesContext } from './StoriesContext'
+import ImagePreviewModal from '../assets/components/ImagePreviewModal'
 
 export type StoryType = { fileName: string; data: string; isWatched: boolean }
 export type StoriesTypeArr = StoryType[] | null
-export type CurrentSelectedStoryType = string | null
 
 export interface StoriesContextInterface {
   stories: StoriesTypeArr
   setStories: React.Dispatch<React.SetStateAction<StoriesTypeArr>>
-  currentSelectedStory: CurrentSelectedStoryType
-  setCurrentSelectedStory: React.Dispatch<
-    React.SetStateAction<CurrentSelectedStoryType>
-  >
+  currentSelectedStory: number
+  setCurrentSelectedStory: React.Dispatch<React.SetStateAction<number>>
 }
 
 const StoriesContextProvider = ({
@@ -21,8 +19,7 @@ const StoriesContextProvider = ({
   children: React.ReactNode
 }) => {
   const [stories, setStories] = useState<StoriesTypeArr>(null)
-  const [currentSelectedStory, setCurrentSelectedStory] =
-    useState<CurrentSelectedStoryType>(null)
+  const [currentSelectedStory, setCurrentSelectedStory] = useState<number>(0)
 
   useLayoutEffect(() => {
     const data = getImagesFromDB()
@@ -44,6 +41,7 @@ const StoriesContextProvider = ({
   return (
     <StoriesContext.Provider value={contextValue}>
       {children}
+      <ImagePreviewModal />
     </StoriesContext.Provider>
   )
 }

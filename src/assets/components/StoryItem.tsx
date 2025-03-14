@@ -4,7 +4,11 @@ import {
   StoriesContextInterface,
   StoryType,
 } from '../../Context/StoriesContextProvider'
-import { commonStoriesClasses, updateImagesDB } from '../../utilities'
+import {
+  commonStoriesClasses,
+  handleImagePreviewModalOpenClose,
+  updateImagesDB,
+} from '../../utilities'
 
 interface IStoryItem {
   story: StoryType
@@ -27,6 +31,8 @@ const StoryItem = (props: IStoryItem) => {
 
       return newStories
     })
+
+    handleImagePreviewModalOpenClose(true)
   }
 
   return (
