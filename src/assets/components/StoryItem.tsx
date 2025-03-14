@@ -16,16 +16,24 @@ interface IStoryItem {
 
 const StoryItem = (props: IStoryItem) => {
   const { story } = props
-  const { setStories } = useContext<StoriesContextInterface>(StoriesContext)
+  const { setStories, setCurrentSelectedStory } =
+    useContext<StoriesContextInterface>(StoriesContext)
 
   if (!story) return
 
   const handleStoryClick = (story: StoryType) => {
     setStories((stories) => {
       const newStories =
-        stories?.map((s) =>
-          s.fileName === story.fileName ? { ...s, isWatched: true } : s
-        ) ?? []
+        stories?.map((s, index) => {
+          const match = s.fileName === story.fileName
+          const finalStory = match ? { ...s, isWatched: true } : s
+
+          if (match) {
+            setCurrentSelectedStory(index)
+          }
+
+          return finalStory
+        }) ?? []
 
       updateImagesDB(newStories)
 
