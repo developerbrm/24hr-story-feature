@@ -2,7 +2,7 @@ import { toast } from 'react-toastify'
 import { StoryType } from '../Context/StoriesContextProvider'
 
 export const IMAGES_DB_KEY = 'images'
-
+export const PROGRESS_DELAY = 3000
 export const commonStoriesClasses = `grid aspect-square w-16 cursor-pointer place-content-center rounded-full shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]`
 
 export const handleFileItem = async (file: File) =>
@@ -61,10 +61,23 @@ export const getErrorMessage = (err: {
   )
 }
 
-export const handleImagePreviewModalOpenClose = (open: boolean = true) => {
+export const handleImagePreviewDialog = (open: boolean = true) => {
   const element: null | HTMLDialogElement = document.querySelector(
     '#image-preview-modal'
   )
   const method = open ? 'showModal' : 'close'
   element?.[method]()
+}
+
+export class Delay {
+  timeOutId: number | null = null
+
+  delay(ms: number = 1000, cb: () => void = () => {}) {
+    if (this.timeOutId) clearTimeout(this.timeOutId)
+
+    this.timeOutId = setTimeout(() => {
+      cb()
+      this.timeOutId = null
+    }, ms)
+  }
 }

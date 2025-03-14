@@ -6,6 +6,8 @@ const defaultContextValue = {
   setStories: () => null,
   currentSelectedStory: 0,
   setCurrentSelectedStory: () => null,
+  setMountImagesPreviewModal: () => null,
+  handleImagePreviewModalOpenClose: () => null,
 }
 
 export const StoriesContext =

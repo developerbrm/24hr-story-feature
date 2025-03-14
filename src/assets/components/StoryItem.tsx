@@ -4,11 +4,7 @@ import {
   StoriesContextInterface,
   StoryType,
 } from '../../Context/StoriesContextProvider'
-import {
-  commonStoriesClasses,
-  handleImagePreviewModalOpenClose,
-  updateImagesDB,
-} from '../../utilities'
+import { commonStoriesClasses, updateImagesDB } from '../../utilities'
 
 interface IStoryItem {
   story: StoryType
@@ -16,8 +12,11 @@ interface IStoryItem {
 
 const StoryItem = (props: IStoryItem) => {
   const { story } = props
-  const { setStories, setCurrentSelectedStory } =
-    useContext<StoriesContextInterface>(StoriesContext)
+  const {
+    setStories,
+    setCurrentSelectedStory,
+    handleImagePreviewModalOpenClose,
+  } = useContext<StoriesContextInterface>(StoriesContext)
 
   if (!story) return
 

@@ -1,2 +1,15 @@
 @import 'tailwindcss';
 @plugin "daisyui";
+
+@theme {
+  --animate-makeWidth100: makeWidth100 linear;
+
+  @keyframes makeWidth100 {
+    0% {
+      width: 0;
+    }
+    100% {
+      width: 100%;
+    }
+  }
+}

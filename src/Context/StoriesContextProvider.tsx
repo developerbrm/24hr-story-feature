@@ -1,16 +1,26 @@
-import { useLayoutEffect, useMemo, useState } from 'react'
-import { getImagesFromDB } from '../utilities'
-import { StoriesContext } from './StoriesContext'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react'
 import ImagePreviewModal from '../assets/components/ImagePreviewModal'
+import { Delay, getImagesFromDB, handleImagePreviewDialog } from '../utilities'
+import { StoriesContext } from './StoriesContext'
 
 export type StoryType = { fileName: string; data: string; isWatched: boolean }
 export type StoriesTypeArr = StoryType[] | null
+
+const d = new Delay()
 
 export interface StoriesContextInterface {
   stories: StoriesTypeArr
   setStories: React.Dispatch<React.SetStateAction<StoriesTypeArr>>
   currentSelectedStory: number
   setCurrentSelectedStory: React.Dispatch<React.SetStateAction<number>>
+  setMountImagesPreviewModal: React.Dispatch<React.SetStateAction<boolean>>
+  handleImagePreviewModalOpenClose: (open: boolean) => void
 }
 
 const StoriesContextProvider = ({
@@ -20,6 +30,7 @@ const StoriesContextProvider = ({
 }) => {
   const [stories, setStories] = useState<StoriesTypeArr>(null)
   const [currentSelectedStory, setCurrentSelectedStory] = useState<number>(0)
+  const [mountImagesPreviewModal, setMountImagesPreviewModal] = useState(false)
 
   useLayoutEffect(() => {
     const data = getImagesFromDB()
@@ -28,20 +39,43 @@ const StoriesContextProvider = ({
     setStories(() => data)
   }, [])
 
+  useEffect(() => {
+    d.delay(0, () => {
+      handleImagePreviewDialog(mountImagesPreviewModal)
+    })
+  }, [mountImagesPreviewModal])
+
+  const handleImagePreviewModalOpenClose = useCallback(
+    (open: boolean = true) => {
+      setMountImagesPreviewModal(open)
+    },
+    [setMountImagesPreviewModal]
+  )
+
   const contextValue = useMemo(
     () => ({
       stories,
       setStories,
       currentSelectedStory,
       setCurrentSelectedStory,
+      setMountImagesPreviewModal,
+      handleImagePreviewModalOpenClose,
     }),
-    [stories, setStories, currentSelectedStory, setCurrentSelectedStory]
+    [
+      stories,
+      setStories,
+      currentSelectedStory,
+      setCurrentSelectedStory,
+      setMountImagesPreviewModal,
+      handleImagePreviewModalOpenClose,
+    ]
   )
 
   return (
     <StoriesContext.Provider value={contextValue}>
       {children}
-      <ImagePreviewModal />
+
+      {mountImagesPreviewModal && <ImagePreviewModal />}
     </StoriesContext.Provider>
   )
 }
