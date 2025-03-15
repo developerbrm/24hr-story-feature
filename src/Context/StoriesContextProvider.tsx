@@ -2,8 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import ImagePreviewModal from '../assets/components/ImagePreviewModal'
 import { Delay, handleImagePreviewDialog } from '../utilities'
 import { StoriesContext } from './StoriesContext'
+import { Dayjs } from 'dayjs'
 
-export type StoryType = { fileName: string; data: string; isWatched: boolean }
+export type StoryType = {
+  fileName: string
+  data: string
+  isWatched: boolean
+  createdAt: Dayjs
+  storyExpirationDate: Dayjs
+}
 export type StoriesTypeArr = StoryType[] | null
 
 const d = new Delay()

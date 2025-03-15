@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { StoryType } from '../Context/StoriesContextProvider'
 
 export const PROGRESS_DELAY = 3000
@@ -18,6 +19,8 @@ export const handleFileItem = async (file: File) =>
         fileName: file.name,
         data: e.target?.result as string,
         isWatched: false,
+        createdAt: dayjs(),
+        storyExpirationDate: dayjs().add(1, 'minutes'),
       })
 
     if (reader.error) throw reader.error
