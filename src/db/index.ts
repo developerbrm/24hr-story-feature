@@ -2,26 +2,80 @@ import { toast } from 'react-toastify'
 import { StoryType } from '../Context/StoriesContextProvider'
 import { getErrorMessage } from '../utilities'
 
-export const IMAGES_DB_KEY = 'images'
+export const IMAGES_DB_KEY = 'images_DB'
+const keyPath = 'fileName'
 
-export const updateImagesDB = (stories: StoryType[] = []) => {
-  const stringifiedData = JSON.stringify(stories ?? [])
+const connectWithDB = async () => {
+  const promise: Promise<IDBDatabase> = new Promise((resolve) => {
+    const request = indexedDB.open(IMAGES_DB_KEY)
+    request.onerror = (event: Event) => {
+      const errorMessage = `Database error: ${(event.target as IDBOpenDBRequest)?.error?.message}`
 
-  try {
-    localStorage.setItem(IMAGES_DB_KEY, stringifiedData)
-  } catch (err) {
-    console.error(err)
-    toast.error(getErrorMessage(err as Error))
-  }
+      toast.error(errorMessage)
+      console.error(errorMessage)
+    }
+
+    request.onsuccess = (event: Event) => {
+      const DB = (event.target as IDBOpenDBRequest).result
+      resolve(DB)
+    }
+
+    request.onupgradeneeded = (event: Event) => {
+      const DB = (event.target as IDBOpenDBRequest).result
+      resolve(DB)
+
+      if (!DB.objectStoreNames.contains('images')) {
+        DB.createObjectStore('images', { keyPath })
+      }
+    }
+  })
+
+  return promise
 }
 
-export const getImagesFromDB = (): StoryType[] => {
-  const stringifiedData = localStorage.getItem(IMAGES_DB_KEY)
+export const updateImagesDB = async (stories: StoryType[] = []) => {
+  const DB = await connectWithDB()
 
-  if (stringifiedData) {
-    const data = JSON.parse(stringifiedData)
-    return data
-  }
+  stories.forEach((story) => {
+    const transaction = DB.transaction('images', 'readwrite')
+    const store = transaction.objectStore('images')
+    const request = store.put(story)
 
-  return []
+    request.onerror = (event: Event) => {
+      const target = event.target as IDBRequest
+      toast.error(getErrorMessage(target?.error as Error))
+      console.error(target?.error)
+    }
+
+    request.onsuccess = (event: Event) => {
+      const target = event.target as IDBRequest
+      console.log(target.result)
+    }
+  })
 }
+
+export const getImagesFromDB = async (): Promise<StoryType[]> =>
+  new Promise((resolve) => {
+    connectWithDB().then((DB) => {
+      const transaction = DB.transaction('images', 'readonly')
+      const store = transaction.objectStore('images')
+      const request = store.getAll()
+
+      request.onerror = (event: Event) => {
+        const target = event.target as IDBRequest
+
+        toast.error(getErrorMessage(target?.error as Error))
+        console.error(target?.error)
+
+        resolve([])
+      }
+
+      request.onsuccess = (event: Event) => {
+        const target = event.target as IDBRequest
+
+        const data = target.result
+
+        resolve(data)
+      }
+    })
+  })

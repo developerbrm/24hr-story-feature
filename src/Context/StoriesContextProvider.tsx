@@ -34,10 +34,11 @@ const StoriesContextProvider = ({
   const [mountImagesPreviewModal, setMountImagesPreviewModal] = useState(false)
 
   useLayoutEffect(() => {
-    const data = getImagesFromDB()
-    if (!data?.length) return
+    getImagesFromDB().then((data) => {
+      if (!data?.length) return
 
-    setStories(() => data)
+      setStories(() => data)
+    })
   }, [])
 
   useEffect(() => {
