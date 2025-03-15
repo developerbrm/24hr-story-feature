@@ -6,8 +6,9 @@ import {
   useState,
 } from 'react'
 import ImagePreviewModal from '../assets/components/ImagePreviewModal'
-import { Delay, getImagesFromDB, handleImagePreviewDialog } from '../utilities'
+import { Delay, handleImagePreviewDialog } from '../utilities'
 import { StoriesContext } from './StoriesContext'
+import { getImagesFromDB } from '../db'
 
 export type StoryType = { fileName: string; data: string; isWatched: boolean }
 export type StoriesTypeArr = StoryType[] | null

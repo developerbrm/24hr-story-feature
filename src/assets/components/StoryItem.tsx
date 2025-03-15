@@ -4,7 +4,8 @@ import {
   StoriesContextInterface,
   StoryType,
 } from '../../Context/StoriesContextProvider'
-import { commonStoriesClasses, updateImagesDB } from '../../utilities'
+import { commonStoriesClasses } from '../../utilities'
+import { updateImagesDB } from '../../db'
 
 interface IStoryItem {
   story: StoryType

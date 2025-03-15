@@ -7,8 +7,8 @@ import {
   commonStoriesClasses,
   getErrorMessage,
   handleFileItem,
-  updateImagesDB,
 } from '../../utilities'
+import { updateImagesDB } from '../../db'
 
 const AddStory = () => {
   const { setStories } = useContext<StoriesContextInterface>(StoriesContext)
