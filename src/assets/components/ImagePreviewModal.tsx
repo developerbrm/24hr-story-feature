@@ -2,8 +2,9 @@ import { IoClose } from 'react-icons/io5'
 import { Delay, PROGRESS_DELAY } from '../../utilities'
 import { StoriesContext } from '../../Context/StoriesContext'
 import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
-import { useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import ProgressComponent from './ProgressComponent'
+import { updateImagesDB } from '../../db'
 
 const d = new Delay()
 
@@ -13,26 +14,49 @@ const ImagePreviewModal = () => {
     currentSelectedStory,
     setCurrentSelectedStory,
     handleImagePreviewModalOpenClose,
+    setStories,
   } = useContext<StoriesContextInterface>(StoriesContext)
 
   const [showProgressBar, setShowProgressBar] = useState(false)
   const story = stories?.[currentSelectedStory]
 
+  const updateWatchedState = useCallback(
+    (newValue: number) => {
+      setStories((stories) => {
+        const newStories =
+          stories?.map((story, index) =>
+            index === newValue ? { ...story, isWatched: true } : story
+          ) ?? []
+
+        updateImagesDB(newStories)
+
+        return newStories
+      })
+    },
+    [setStories]
+  )
+
   useEffect(() => {
     setShowProgressBar(true)
+
     d.delay(PROGRESS_DELAY, () => {
       setCurrentSelectedStory((prevValue) => {
+        let newValue: number
+
         const n = stories?.length ?? 0
-        setShowProgressBar(false)
 
         if (n <= prevValue + 1) {
-          return 0
+          newValue = 0
+        } else {
+          newValue = prevValue + 1
         }
 
-        return prevValue + 1
+        setShowProgressBar(false)
+        updateWatchedState(newValue)
+        return newValue
       })
     })
-  }, [story, stories, setCurrentSelectedStory])
+  }, [story, stories, setCurrentSelectedStory, updateWatchedState])
 
   if (!story) return
 
