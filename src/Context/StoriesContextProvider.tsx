@@ -1,14 +1,7 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import ImagePreviewModal from '../assets/components/ImagePreviewModal'
 import { Delay, handleImagePreviewDialog } from '../utilities'
 import { StoriesContext } from './StoriesContext'
-import { getImagesFromDB } from '../db'
 
 export type StoryType = { fileName: string; data: string; isWatched: boolean }
 export type StoriesTypeArr = StoryType[] | null
@@ -32,14 +25,6 @@ const StoriesContextProvider = ({
   const [stories, setStories] = useState<StoriesTypeArr>(null)
   const [currentSelectedStory, setCurrentSelectedStory] = useState<number>(0)
   const [mountImagesPreviewModal, setMountImagesPreviewModal] = useState(false)
-
-  useLayoutEffect(() => {
-    getImagesFromDB().then((data) => {
-      if (!data?.length) return
-
-      setStories(() => data)
-    })
-  }, [])
 
   useEffect(() => {
     d.delay(0, () => {
