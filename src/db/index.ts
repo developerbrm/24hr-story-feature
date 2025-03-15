@@ -33,26 +33,29 @@ const connectWithDB = async () => {
   return promise
 }
 
-export const updateImagesDB = async (stories: StoryType[] = []) => {
-  const DB = await connectWithDB()
+export const updateImagesDB = async (stories: StoryType[] = []) =>
+  new Promise((resolve) => {
+    connectWithDB().then((DB) => {
+      stories.forEach((story) => {
+        const transaction = DB.transaction('images', 'readwrite')
+        const store = transaction.objectStore('images')
+        const request = store.put(story)
 
-  stories.forEach((story) => {
-    const transaction = DB.transaction('images', 'readwrite')
-    const store = transaction.objectStore('images')
-    const request = store.put(story)
+        request.onerror = (event: Event) => {
+          const target = event.target as IDBRequest
+          toast.error(getErrorMessage(target?.error as Error))
+          console.error(target?.error)
+        }
 
-    request.onerror = (event: Event) => {
-      const target = event.target as IDBRequest
-      toast.error(getErrorMessage(target?.error as Error))
-      console.error(target?.error)
-    }
+        request.onsuccess = (event: Event) => {
+          const target = event.target as IDBRequest
+          console.log(target.result)
+        }
+      })
 
-    request.onsuccess = (event: Event) => {
-      const target = event.target as IDBRequest
-      console.log(target.result)
-    }
+      resolve('Updated')
+    })
   })
-}
 
 export const getImagesFromDB = async (): Promise<StoryType[]> =>
   new Promise((resolve) => {
@@ -76,6 +79,27 @@ export const getImagesFromDB = async (): Promise<StoryType[]> =>
         const data = target.result
 
         resolve(data)
+      }
+    })
+  })
+
+export const clearImagesFromDB = async () =>
+  new Promise((resolve) => {
+    connectWithDB().then((DB) => {
+      const transaction = DB.transaction('images', 'readwrite')
+      const store = transaction.objectStore('images')
+      const request = store.clear()
+
+      request.onerror = (event: Event) => {
+        const target = event.target as IDBRequest
+        toast.error(getErrorMessage(target?.error as Error))
+        console.error(target?.error)
+      }
+
+      request.onsuccess = () => {
+        console.log('Images store cleared')
+
+        resolve('Images store cleared')
       }
     })
   })

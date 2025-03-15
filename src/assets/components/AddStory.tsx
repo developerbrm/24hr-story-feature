@@ -8,26 +8,31 @@ import {
   getErrorMessage,
   handleFileItem,
 } from '../../utilities'
-import { updateImagesDB } from '../../db'
+import { clearImagesFromDB, updateImagesDB } from '../../db'
+import { PropsInterface } from './Stories'
 
-const AddStory = () => {
+const AddStory = ({ setShowPlaceholder }: PropsInterface) => {
   const { setStories } = useContext<StoriesContextInterface>(StoriesContext)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return
 
+    setShowPlaceholder(true)
     const allPromises = [...e.target.files].map(handleFileItem)
 
-    Promise.all(allPromises)
-      .then((data) => {
-        updateImagesDB(data)
-        setStories(data)
-      })
-      .catch((err) => {
-        console.error(err)
+    clearImagesFromDB().then(() => {
+      Promise.all(allPromises)
+        .then((data) => {
+          updateImagesDB(data)
+          setStories(data)
+        })
+        .catch((err) => {
+          console.error(err)
 
-        toast.error(getErrorMessage(err))
-      })
+          toast.error(getErrorMessage(err))
+        })
+        .finally(() => setShowPlaceholder(false))
+    })
   }
 
   return (

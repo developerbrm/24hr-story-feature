@@ -1,14 +1,16 @@
-import { useContext, useLayoutEffect, useState } from 'react'
+import { useContext, useLayoutEffect } from 'react'
 import { StoriesContext } from '../../Context/StoriesContext'
 import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
 import { getImagesFromDB } from '../../db'
+import { PropsInterface } from './Stories'
 import StoryItem from './StoryItem'
 
-const RenderStories = () => {
+const RenderStories = ({
+  showPlaceholder,
+  setShowPlaceholder,
+}: PropsInterface) => {
   const { stories, setStories } =
     useContext<StoriesContextInterface>(StoriesContext)
-
-  const [showPlaceholder, setShowPlaceholder] = useState(true)
 
   useLayoutEffect(() => {
     setShowPlaceholder(true)
