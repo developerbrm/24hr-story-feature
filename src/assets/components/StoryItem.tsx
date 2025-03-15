@@ -22,11 +22,13 @@ const StoryItem = (props: IStoryItem) => {
   if (!story) return
 
   const handleStoryClick = (story: StoryType) => {
-    setStories((stories) => {
-      const newStories =
+    setStories(
+      (stories) =>
         stories?.map((s, index) => {
           const match = s.fileName === story.fileName
           const finalStory = match ? { ...s, isWatched: true } : s
+
+          updateImagesDB([finalStory])
 
           if (match) {
             setCurrentSelectedStory(index)
@@ -34,11 +36,7 @@ const StoryItem = (props: IStoryItem) => {
 
           return finalStory
         }) ?? []
-
-      updateImagesDB(newStories)
-
-      return newStories
-    })
+    )
 
     handleImagePreviewModalOpenClose(true)
   }

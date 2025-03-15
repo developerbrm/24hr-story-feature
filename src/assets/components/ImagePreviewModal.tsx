@@ -24,11 +24,17 @@ const ImagePreviewModal = () => {
     (newValue: number) => {
       setStories((stories) => {
         const newStories =
-          stories?.map((story, index) =>
-            index === newValue ? { ...story, isWatched: true } : story
-          ) ?? []
+          stories?.map((story, index) => {
+            if (index === newValue) {
+              const newStory = { ...story, isWatched: true }
 
-        updateImagesDB(newStories)
+              updateImagesDB([newStory])
+
+              return newStory
+            }
+
+            return story
+          }) ?? []
 
         return newStories
       })
