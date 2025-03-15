@@ -3,12 +3,12 @@ import AddStory from './AddStory'
 import RenderStories from './RenderStories'
 
 export interface PropsInterface {
-  showPlaceholder: boolean
-  setShowPlaceholder: React.Dispatch<React.SetStateAction<boolean>>
+  showPlaceholder: number | null
+  setShowPlaceholder: React.Dispatch<React.SetStateAction<number | null>>
 }
 
 const Stories = () => {
-  const [showPlaceholder, setShowPlaceholder] = useState(true)
+  const [showPlaceholder, setShowPlaceholder] = useState<number | null>(null)
 
   return (
     <div className="bg-white shadow-md">
