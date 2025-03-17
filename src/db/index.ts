@@ -78,7 +78,9 @@ export const getImagesFromDB = async (): Promise<StoryType[]> =>
       request.onsuccess = (event: Event) => {
         const target = event.target as IDBRequest
 
-        const data = filterExpiredStories(target.result)
+        const data = filterExpiredStories(target.result).then((data) =>
+          data.toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+        )
 
         resolve(data)
       }
