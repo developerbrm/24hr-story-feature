@@ -6,8 +6,8 @@ export const PROGRESS_DELAY = 3000
 export const commonStoriesClasses = `grid aspect-square w-16 cursor-pointer place-content-center rounded-full shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]`
 
 export const expiryControlObj: { value: number; unit: dayjs.ManipulateType } = {
-  value: 30,
-  unit: 'seconds',
+  value: 1,
+  unit: 'minutes',
 }
 
 export const handleFileItem = async (file: File) =>
