@@ -19,8 +19,8 @@ export const handleFileItem = async (file: File) =>
         fileName: file.name,
         data: e.target?.result as string,
         isWatched: false,
-        createdAt: dayjs(),
-        storyExpirationDate: dayjs().add(1, 'minutes'),
+        createdAt: dayjs().toString(),
+        storyExpirationDate: dayjs().add(30, 'seconds').toString(),
       })
 
     if (reader.error) throw reader.error
@@ -60,3 +60,6 @@ export class Delay {
     }, ms)
   }
 }
+
+export const isDateExpired = (dateString: string) =>
+  dayjs().isAfter(dayjs(dateString))

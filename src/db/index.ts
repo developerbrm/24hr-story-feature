@@ -1,6 +1,6 @@
 import { toast } from 'react-toastify'
 import { StoryType } from '../Context/StoriesContextProvider'
-import { getErrorMessage } from '../utilities'
+import { getErrorMessage, isDateExpired } from '../utilities'
 
 export const IMAGES_DB_KEY = 'images_DB'
 const keyPath = 'fileName'
@@ -25,11 +25,12 @@ const connectWithDB = async () => {
 
     request.onupgradeneeded = (event: Event) => {
       const DB = (event.target as IDBOpenDBRequest).result
-      resolve(DB)
 
       if (!DB.objectStoreNames.contains('images')) {
         DB.createObjectStore('images', { keyPath })
       }
+
+      resolve(DB)
     }
   })
 
@@ -77,7 +78,7 @@ export const getImagesFromDB = async (): Promise<StoryType[]> =>
       request.onsuccess = (event: Event) => {
         const target = event.target as IDBRequest
 
-        const data = target.result
+        const data = filterExpiredStories(target.result)
 
         resolve(data)
       }
@@ -101,5 +102,69 @@ export const clearImagesFromDB = async () =>
 
         resolve('Images store cleared')
       }
+    })
+  })
+
+const deleteStory = async (story: StoryType, store: IDBObjectStore) => {
+  const id = story[keyPath]
+  const request = store.delete(id)
+
+  request.onerror = (event: Event) => {
+    const target = event.target as IDBRequest
+    toast.error(getErrorMessage(target?.error as Error))
+    console.error(target?.error)
+
+    return Promise.reject(target.error as Error)
+  }
+
+  request.onsuccess = () => {
+    console.log('Image deleted')
+
+    return Promise.resolve('Image deleted')
+  }
+}
+
+const handlePromises = async (
+  allPromises: Promise<void>[],
+  resolve: (value: unknown) => void
+) => {
+  Promise.allSettled(allPromises).then((results) => {
+    const errors = results.filter((result) => result.status === 'rejected')
+    if (errors.length > 0) {
+      errors.forEach((err) => console.error(err.reason))
+      resolve('Some images failed to delete')
+    } else {
+      resolve('All images deleted successfully')
+    }
+  })
+}
+
+export const deleteStoriesFromDB = async (stories: StoryType[]) =>
+  new Promise((resolve) => {
+    connectWithDB().then((DB) => {
+      const store = getStore(DB)
+
+      const allPromises = stories.map((story) => deleteStory(story, store))
+      handlePromises(allPromises, resolve)
+    })
+  })
+
+export const filterExpiredStories = async (
+  stories: StoryType[]
+): Promise<StoryType[]> =>
+  new Promise((resolve) => {
+    const expiredStories: StoryType[] = []
+    const validStories: StoryType[] = []
+
+    stories.forEach((story) => {
+      if (isDateExpired(story.storyExpirationDate)) {
+        expiredStories.push(story)
+      } else {
+        validStories.push(story)
+      }
+    })
+
+    deleteStoriesFromDB(expiredStories).then(() => {
+      resolve(validStories)
     })
   })
