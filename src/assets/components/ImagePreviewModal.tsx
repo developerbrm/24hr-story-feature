@@ -47,22 +47,26 @@ const ImagePreviewModal = () => {
 
     d.delay(PROGRESS_DELAY, () => {
       setCurrentSelectedStory((prevValue) => {
-        let newValue: number
-
         const n = stories?.length ?? 0
 
         if (n <= prevValue + 1) {
-          newValue = 0
-        } else {
-          newValue = prevValue + 1
+          handleImagePreviewModalOpenClose(false)
         }
+
+        const newValue = prevValue + 1
 
         setShowProgressBar(false)
         updateWatchedState(newValue)
         return newValue
       })
     })
-  }, [story, stories, setCurrentSelectedStory, updateWatchedState])
+  }, [
+    story,
+    stories,
+    setCurrentSelectedStory,
+    updateWatchedState,
+    handleImagePreviewModalOpenClose,
+  ])
 
   if (!story) return
 
