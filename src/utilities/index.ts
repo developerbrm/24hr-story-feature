@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { StoriesTypeArr, StoryType } from '../Context/StoriesContextProvider'
 import { deleteStory } from '../db'
+import { Flip } from 'react-toastify'
 
 export const PROGRESS_DELAY = 3000
 export const commonStoriesClasses = `grid aspect-square w-16 cursor-pointer place-content-center rounded-full shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]`
@@ -104,4 +105,9 @@ export const handleOnExpiration = (
 
     d.delay(timerDuration, () => handleDelay(story))
   })
+}
+
+export const commonToastOptions = {
+  autoClose: 2000,
+  transition: Flip,
 }

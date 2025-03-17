@@ -6,19 +6,20 @@ import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
 import { getImagesFromDB, updateImagesDB } from '../../db'
 import {
   commonStoriesClasses,
+  commonToastOptions,
   getErrorMessage,
   handleFileItem,
   handleOnExpiration,
 } from '../../utilities'
-import { PropsInterface } from './Stories'
 
-const AddStory = ({ setShowPlaceholder }: PropsInterface) => {
+const AddStory = () => {
   const { setStories } = useContext<StoriesContextInterface>(StoriesContext)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return
 
-    setShowPlaceholder(e.target.files.length)
+    const toastId = toast.loading('Adding images')
+
     const allPromises = [...e.target.files].map(handleFileItem)
 
     Promise.all(allPromises)
@@ -28,15 +29,28 @@ const AddStory = ({ setShowPlaceholder }: PropsInterface) => {
         getImagesFromDB().then((data) => {
           setStories(data)
 
+          toast.update(toastId, {
+            ...commonToastOptions,
+            render: 'Images Added',
+            type: 'success',
+            isLoading: false,
+          })
+
           handleOnExpiration(data, setStories)
         })
       })
       .catch((err) => {
         console.error(err)
 
+        toast.update(toastId, {
+          ...commonToastOptions,
+          render: 'Images Addition Failed',
+          type: 'error',
+          isLoading: false,
+        })
+
         toast.error(getErrorMessage(err))
       })
-      .finally(() => setShowPlaceholder(null))
   }
 
   return (
