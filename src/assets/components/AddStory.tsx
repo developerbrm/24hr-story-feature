@@ -3,7 +3,7 @@ import { IoAddOutline } from 'react-icons/io5'
 import { toast } from 'react-toastify'
 import { StoriesContext } from '../../Context/StoriesContext'
 import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
-import { updateImagesDB } from '../../db'
+import { getImagesFromDB, updateImagesDB } from '../../db'
 import {
   commonStoriesClasses,
   getErrorMessage,
@@ -23,7 +23,10 @@ const AddStory = ({ setShowPlaceholder }: PropsInterface) => {
     Promise.all(allPromises)
       .then((data) => {
         updateImagesDB(data)
-        setStories(data)
+
+        getImagesFromDB().then((data) => {
+          setStories(data)
+        })
       })
       .catch((err) => {
         console.error(err)
