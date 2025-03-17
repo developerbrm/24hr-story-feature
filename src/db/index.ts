@@ -5,6 +5,9 @@ import { getErrorMessage } from '../utilities'
 export const IMAGES_DB_KEY = 'images_DB'
 const keyPath = 'fileName'
 
+const getStore = (DB: IDBDatabase) =>
+  DB.transaction('images', 'readwrite').objectStore('images')
+
 const connectWithDB = async () => {
   const promise: Promise<IDBDatabase> = new Promise((resolve) => {
     const request = indexedDB.open(IMAGES_DB_KEY)
@@ -37,8 +40,7 @@ export const updateImagesDB = async (stories: StoryType[] = []) =>
   new Promise((resolve) => {
     connectWithDB().then((DB) => {
       stories.forEach((story) => {
-        const transaction = DB.transaction('images', 'readwrite')
-        const store = transaction.objectStore('images')
+        const store = getStore(DB)
         const request = store.put(story)
 
         request.onerror = (event: Event) => {
@@ -60,8 +62,7 @@ export const updateImagesDB = async (stories: StoryType[] = []) =>
 export const getImagesFromDB = async (): Promise<StoryType[]> =>
   new Promise((resolve) => {
     connectWithDB().then((DB) => {
-      const transaction = DB.transaction('images', 'readonly')
-      const store = transaction.objectStore('images')
+      const store = getStore(DB)
       const request = store.getAll()
 
       request.onerror = (event: Event) => {
@@ -86,8 +87,7 @@ export const getImagesFromDB = async (): Promise<StoryType[]> =>
 export const clearImagesFromDB = async () =>
   new Promise((resolve) => {
     connectWithDB().then((DB) => {
-      const transaction = DB.transaction('images', 'readwrite')
-      const store = transaction.objectStore('images')
+      const store = getStore(DB)
       const request = store.clear()
 
       request.onerror = (event: Event) => {
