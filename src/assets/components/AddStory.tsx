@@ -3,7 +3,7 @@ import { IoAddOutline } from 'react-icons/io5'
 import { toast } from 'react-toastify'
 import { StoriesContext } from '../../Context/StoriesContext'
 import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
-import { clearImagesFromDB, updateImagesDB } from '../../db'
+import { updateImagesDB } from '../../db'
 import {
   commonStoriesClasses,
   getErrorMessage,
@@ -20,19 +20,17 @@ const AddStory = ({ setShowPlaceholder }: PropsInterface) => {
     setShowPlaceholder(e.target.files.length)
     const allPromises = [...e.target.files].map(handleFileItem)
 
-    clearImagesFromDB().then(() => {
-      Promise.all(allPromises)
-        .then((data) => {
-          updateImagesDB(data)
-          setStories(data)
-        })
-        .catch((err) => {
-          console.error(err)
+    Promise.all(allPromises)
+      .then((data) => {
+        updateImagesDB(data)
+        setStories(data)
+      })
+      .catch((err) => {
+        console.error(err)
 
-          toast.error(getErrorMessage(err))
-        })
-        .finally(() => setShowPlaceholder(null))
-    })
+        toast.error(getErrorMessage(err))
+      })
+      .finally(() => setShowPlaceholder(null))
   }
 
   return (
