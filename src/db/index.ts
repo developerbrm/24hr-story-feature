@@ -107,23 +107,27 @@ export const clearImagesFromDB = async () =>
     })
   })
 
-const deleteStory = async (story: StoryType, store: IDBObjectStore) => {
-  const id = story[keyPath]
-  const request = store.delete(id)
+const deleteStory = async (story: StoryType) => {
+  connectWithDB().then((DB) => {
+    const store = getStore(DB)
 
-  request.onerror = (event: Event) => {
-    const target = event.target as IDBRequest
-    toast.error(getErrorMessage(target?.error as Error))
-    console.error(target?.error)
+    const id = story[keyPath]
+    const request = store.delete(id)
 
-    return Promise.reject(target.error as Error)
-  }
+    request.onerror = (event: Event) => {
+      const target = event.target as IDBRequest
+      toast.error(getErrorMessage(target?.error as Error))
+      console.error(target?.error)
 
-  request.onsuccess = () => {
-    console.log('Image deleted')
+      return Promise.reject(target.error as Error)
+    }
 
-    return Promise.resolve('Image deleted')
-  }
+    request.onsuccess = () => {
+      console.log('Image deleted')
+
+      return Promise.resolve('Image deleted')
+    }
+  })
 }
 
 const handlePromises = async (
@@ -143,12 +147,8 @@ const handlePromises = async (
 
 export const deleteStoriesFromDB = async (stories: StoryType[]) =>
   new Promise((resolve) => {
-    connectWithDB().then((DB) => {
-      const store = getStore(DB)
-
-      const allPromises = stories.map((story) => deleteStory(story, store))
-      handlePromises(allPromises, resolve)
-    })
+    const allPromises = stories.map((story) => deleteStory(story))
+    handlePromises(allPromises, resolve)
   })
 
 export const filterExpiredStories = async (
