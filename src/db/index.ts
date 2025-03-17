@@ -5,17 +5,19 @@ import { getErrorMessage, isDateExpired } from '../utilities'
 export const IMAGES_DB_KEY = 'images_DB'
 const keyPath = 'fileName'
 
-const getStore = (DB: IDBDatabase) =>
+const getStore = async (DB: IDBDatabase) =>
   DB.transaction('images', 'readwrite').objectStore('images')
 
 const connectWithDB = async () => {
-  const promise: Promise<IDBDatabase> = new Promise((resolve) => {
+  const promise: Promise<IDBDatabase> = new Promise((resolve, reject) => {
     const request = indexedDB.open(IMAGES_DB_KEY)
     request.onerror = (event: Event) => {
       const errorMessage = `Database error: ${(event.target as IDBOpenDBRequest)?.error?.message}`
 
       toast.error(errorMessage)
       console.error(errorMessage)
+
+      reject(new Error(errorMessage))
     }
 
     request.onsuccess = (event: Event) => {
@@ -40,8 +42,11 @@ const connectWithDB = async () => {
 export const updateImagesDB = async (stories: StoryType[] = []) =>
   new Promise((resolve) => {
     connectWithDB().then((DB) => {
-      stories.forEach((story) => {
-        const store = getStore(DB)
+      stories.forEach(async (story) => {
+        const store = await getStore(DB).catch((err) => {
+          throw new Error(err)
+        })
+
         const request = store.put(story)
 
         request.onerror = (event: Event) => {
@@ -62,8 +67,10 @@ export const updateImagesDB = async (stories: StoryType[] = []) =>
 
 export const getImagesFromDB = async (): Promise<StoryType[]> =>
   new Promise((resolve) => {
-    connectWithDB().then((DB) => {
-      const store = getStore(DB)
+    connectWithDB().then(async (DB) => {
+      const store = await getStore(DB).catch((err) => {
+        throw new Error(err)
+      })
       const request = store.getAll()
 
       request.onerror = (event: Event) => {
@@ -89,8 +96,10 @@ export const getImagesFromDB = async (): Promise<StoryType[]> =>
 
 export const clearImagesFromDB = async () =>
   new Promise((resolve) => {
-    connectWithDB().then((DB) => {
-      const store = getStore(DB)
+    connectWithDB().then(async (DB) => {
+      const store = await getStore(DB).catch((err) => {
+        throw new Error(err)
+      })
       const request = store.clear()
 
       request.onerror = (event: Event) => {
@@ -108,8 +117,10 @@ export const clearImagesFromDB = async () =>
   })
 
 export const deleteStory = async (story: StoryType) => {
-  connectWithDB().then((DB) => {
-    const store = getStore(DB)
+  connectWithDB().then(async (DB) => {
+    const store = await getStore(DB).catch((err) => {
+      throw new Error(err)
+    })
 
     const id = story[keyPath]
     const request = store.delete(id)
