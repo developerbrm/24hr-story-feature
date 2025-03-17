@@ -8,6 +8,7 @@ import {
   commonStoriesClasses,
   getErrorMessage,
   handleFileItem,
+  handleOnExpiration,
 } from '../../utilities'
 import { PropsInterface } from './Stories'
 
@@ -15,7 +16,7 @@ const AddStory = ({ setShowPlaceholder }: PropsInterface) => {
   const { setStories } = useContext<StoriesContextInterface>(StoriesContext)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return
+    if (!e.target.files?.length) return
 
     setShowPlaceholder(e.target.files.length)
     const allPromises = [...e.target.files].map(handleFileItem)
@@ -26,6 +27,8 @@ const AddStory = ({ setShowPlaceholder }: PropsInterface) => {
 
         getImagesFromDB().then((data) => {
           setStories(data)
+
+          handleOnExpiration(data, setStories)
         })
       })
       .catch((err) => {

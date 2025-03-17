@@ -107,7 +107,7 @@ export const clearImagesFromDB = async () =>
     })
   })
 
-const deleteStory = async (story: StoryType) => {
+export const deleteStory = async (story: StoryType) => {
   connectWithDB().then((DB) => {
     const store = getStore(DB)
 
