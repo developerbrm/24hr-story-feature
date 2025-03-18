@@ -10,6 +10,13 @@ import ProgressComponent from './ProgressComponent'
 
 dayjs.extend(relativeTime)
 
+type PointerUPDownXY = {
+  x: number
+  y: number
+} | null
+
+type SwipeDirection = 'left' | 'right' | null
+
 const ImagePreviewModal = () => {
   const {
     stories,
@@ -26,28 +33,31 @@ const ImagePreviewModal = () => {
     [currentSelectedStory, stories]
   )
 
+  const [pointerDownXY, setPointerDownXY] = useState<PointerUPDownXY>(null)
+  const [pointerUpXY, setPointerUpXY] = useState<PointerUPDownXY>(null)
+  const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>(null)
+
   const handlePausePlay = (type: 'pause' | 'play') => {
     setPauseProgress(type === 'pause')
   }
 
   const handleImagePointerDown = (e: React.PointerEvent<HTMLImageElement>) => {
     setPauseProgress(true)
-
-    console.log(e)
+    setPointerUpXY(null)
+    setPointerDownXY({ x: e.screenX, y: e.screenY })
   }
 
   const handleImagePointerUp = (e: React.PointerEvent<HTMLImageElement>) => {
     setPauseProgress(false)
-
-    console.log(e)
+    setPointerUpXY({ x: e.screenX, y: e.screenY })
   }
 
   const updateWatchedState = useCallback(
-    (newValue: number) => {
+    (newIndex: number) => {
       setStories((stories) => {
         const newStories =
           stories?.map((story, index) => {
-            const match = index === newValue
+            const match = index === newIndex
 
             if (story.isWatched && match) return story
             if (match) {
@@ -67,27 +77,58 @@ const ImagePreviewModal = () => {
     [setStories]
   )
 
+  const handleStoryChange = useCallback(
+    (isNext = true) => {
+      setCurrentSelectedStory((prevValue) => {
+        const n = stories?.length ?? 0
+
+        if ((n <= prevValue + 1 && isNext) || (prevValue === 0 && !isNext)) {
+          handleImagePreviewModalOpenClose(false)
+        }
+
+        const nextIndex = prevValue + 1
+        const prevIndex = prevValue - 1
+
+        const finalIndex = isNext ? nextIndex : prevIndex
+
+        updateWatchedState(finalIndex)
+        return finalIndex
+      })
+    },
+    [
+      stories,
+      setCurrentSelectedStory,
+      handleImagePreviewModalOpenClose,
+      updateWatchedState,
+    ]
+  )
+
+  useEffect(() => {
+    if (!swipeDirection) return
+
+    handleStoryChange(swipeDirection === 'left')
+
+    setSwipeDirection(null)
+  }, [swipeDirection, handleStoryChange])
+
+  useEffect(() => {
+    if (!pointerDownXY || !pointerUpXY) return
+
+    const direction = pointerUpXY.x > pointerDownXY.x ? 'right' : 'left'
+    setSwipeDirection(direction)
+  }, [pointerUpXY, pointerDownXY])
+
   useEffect(() => {
     if (progressValue !== STORY_TIMEOUT) return
 
-    setCurrentSelectedStory((prevValue) => {
-      const n = stories?.length ?? 0
-
-      if (n <= prevValue + 1) {
-        handleImagePreviewModalOpenClose(false)
-      }
-
-      const nextValue = prevValue + 1
-
-      updateWatchedState(nextValue)
-      return nextValue
-    })
+    handleStoryChange(true)
   }, [
     stories,
     setCurrentSelectedStory,
     updateWatchedState,
     handleImagePreviewModalOpenClose,
     progressValue,
+    handleStoryChange,
   ])
 
   useEffect(() => {
@@ -138,9 +179,9 @@ const ImagePreviewModal = () => {
           </p>
 
           <img
-            onPointerDown={handleImagePointerDown}
-            onPointerUp={handleImagePointerUp}
-            onPointerCancel={handleImagePointerUp}
+            draggable={false}
+            onPointerDownCapture={handleImagePointerDown}
+            onPointerUpCapture={handleImagePointerUp}
             src={story.data}
             alt={story.fileName}
             title={story.fileName}
@@ -148,6 +189,7 @@ const ImagePreviewModal = () => {
             className={`absolute inset-0 z-10 block h-full w-full touch-pan-x overflow-hidden object-contain object-center`}
           />
           <img
+            draggable={false}
             src={story.data}
             alt={story.fileName}
             className={`pointer-events-none absolute inset-0 block h-full w-full overflow-hidden object-cover object-center blur-xs`}
