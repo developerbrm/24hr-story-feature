@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useCallback, useContext, useEffect, useState } from 'react'
-import { IoClose } from 'react-icons/io5'
+import { IoClose, IoPause, IoPlay } from 'react-icons/io5'
 import { StoriesContext } from '../../Context/StoriesContext'
 import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
 import { updateImagesDB } from '../../db'
@@ -20,7 +20,12 @@ const ImagePreviewModal = () => {
   } = useContext<StoriesContextInterface>(StoriesContext)
 
   const [progressValue, setProgressValue] = useState(0)
+  const [pauseProgress, setPauseProgress] = useState(false)
   const story = stories?.[currentSelectedStory]
+
+  const handlePausePlay = (type: 'pause' | 'play') => {
+    setPauseProgress(type === 'pause')
+  }
 
   const updateWatchedState = useCallback(
     (newValue: number) => {
@@ -70,6 +75,8 @@ const ImagePreviewModal = () => {
   useEffect(() => {
     const intervalId = setInterval(() => {
       setProgressValue((prevValue) => {
+        if (pauseProgress) return prevValue
+
         const newValue = prevValue + STORY_PROGRESS_INTERVAL
 
         if (newValue >= STORY_TIMEOUT) {
@@ -85,7 +92,7 @@ const ImagePreviewModal = () => {
     return () => {
       clearInterval(intervalId)
     }
-  }, [])
+  }, [pauseProgress])
 
   if (!story) return
 
@@ -97,10 +104,20 @@ const ImagePreviewModal = () => {
       >
         <div className="modal-box relative h-11/12 w-11/12 !max-w-7xl p-0 shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]">
           <ProgressComponent progressValue={progressValue} />
-          <IoClose
-            className="absolute top-3 right-3 z-50 cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110"
-            onClick={() => handleImagePreviewModalOpenClose(false)}
-          />
+          <div className="absolute top-3 right-3 z-50 flex gap-1">
+            <IoPause
+              className={`${pauseProgress ? 'hidden' : ''} cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110`}
+              onClick={() => handlePausePlay('pause')}
+            />
+            <IoPlay
+              className={`${pauseProgress ? '' : 'hidden'} cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110`}
+              onClick={() => handlePausePlay('play')}
+            />
+            <IoClose
+              className="cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110"
+              onClick={() => handleImagePreviewModalOpenClose(false)}
+            />
+          </div>
 
           <p className="absolute top-2 z-10 flex h-10 w-full items-center justify-start gap-2 truncate bg-gradient-to-r from-white/90 via-transparent to-transparent px-2 text-ellipsis text-slate-600 backdrop-blur-xs">
             <span className="text-md font-semibold capitalize">
