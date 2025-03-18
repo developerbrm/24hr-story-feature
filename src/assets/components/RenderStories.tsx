@@ -11,15 +11,15 @@ const RenderStories = () => {
     useContext<StoriesContextInterface>(StoriesContext)
 
   useLayoutEffect(() => {
-    const toastId = toast.loading('Finding Existing Images')
+    const toastId = toast.loading('Finding Existing Stories')
 
     getImagesFromDB()
       .then((data) => {
-        let render = `No Existing Images Found`
+        let render = `No Existing Stories Found`
         let type: TypeOptions = `info`
 
         if (data?.length) {
-          render = `Images Search Success`
+          render = `Showing Existing Stories`
           type = `success`
 
           setStories(() => data)

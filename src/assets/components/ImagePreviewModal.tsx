@@ -44,6 +44,8 @@ const ImagePreviewModal = () => {
       setStories((stories) => {
         const newStories =
           stories?.map((story, index) => {
+            if (story.isWatched) return story
+
             if (index === newValue) {
               const newStory = { ...story, isWatched: true }
 
