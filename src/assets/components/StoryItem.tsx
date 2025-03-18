@@ -25,15 +25,19 @@ const StoryItem = (props: IStoryItem) => {
     setStories(
       (stories) =>
         stories?.map((story, index) => {
-          if (story.isWatched) return story
-
           const match = story.fileName === s.fileName
-          const finalStory = match ? { ...story, isWatched: true } : story
 
-          updateImagesDB([finalStory])
+          if (story.isWatched && match) {
+            setCurrentSelectedStory(index)
+
+            return story
+          }
+
+          const finalStory = match ? { ...story, isWatched: true } : story
 
           if (match) {
             setCurrentSelectedStory(index)
+            updateImagesDB([finalStory])
           }
 
           return finalStory

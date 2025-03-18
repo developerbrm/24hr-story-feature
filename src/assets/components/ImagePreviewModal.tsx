@@ -44,9 +44,10 @@ const ImagePreviewModal = () => {
       setStories((stories) => {
         const newStories =
           stories?.map((story, index) => {
-            if (story.isWatched) return story
+            const match = index === newValue
 
-            if (index === newValue) {
+            if (story.isWatched && match) return story
+            if (match) {
               const newStory = { ...story, isWatched: true }
 
               updateImagesDB([newStory])
