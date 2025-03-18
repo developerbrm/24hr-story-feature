@@ -121,8 +121,6 @@ export const startProgressInterval = (
   pauseProgress: boolean
 ): number => {
   const intervalId = setInterval(() => {
-    console.log(intervalId)
-
     setProgressValue((prevValue) => {
       if (pauseProgress) return prevValue
 

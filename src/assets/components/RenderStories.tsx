@@ -19,7 +19,7 @@ const RenderStories = () => {
         let type: TypeOptions = `info`
 
         if (data?.length) {
-          render = `Showing Existing Stories`
+          render = `Displaying Existing Stories`
           type = `success`
 
           setStories(() => data)
