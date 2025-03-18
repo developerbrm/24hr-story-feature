@@ -27,6 +27,18 @@ const ImagePreviewModal = () => {
     setPauseProgress(type === 'pause')
   }
 
+  const handleImagePointerDown = (e: React.PointerEvent<HTMLImageElement>) => {
+    setPauseProgress(true)
+
+    console.log(e)
+  }
+
+  const handleImagePointerUp = (e: React.PointerEvent<HTMLImageElement>) => {
+    setPauseProgress(false)
+
+    console.log(e)
+  }
+
   const updateWatchedState = useCallback(
     (newValue: number) => {
       setStories((stories) => {
@@ -130,10 +142,13 @@ const ImagePreviewModal = () => {
           </p>
 
           <img
+            onPointerDown={handleImagePointerDown}
+            onPointerUp={handleImagePointerUp}
+            onPointerCancel={handleImagePointerUp}
             src={story.data}
             alt={story.fileName}
             title={story.fileName}
-            className={`absolute inset-0 block h-full w-full overflow-hidden object-cover object-center`}
+            className={`absolute inset-0 block h-full w-full touch-pan-x overflow-hidden object-cover object-center`}
           />
         </div>
         <form method="dialog" className="modal-backdrop">
