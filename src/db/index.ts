@@ -67,31 +67,33 @@ export const updateImagesDB = async (stories: StoryType[] = []) =>
 
 export const getImagesFromDB = async (): Promise<StoryType[]> =>
   new Promise((resolve) => {
-    connectWithDB().then(async (DB) => {
-      const store = await getStore(DB).catch((err) => {
-        throw new Error(err)
+    connectWithDB()
+      .then(async (DB) => {
+        const store = await getStore(DB).catch((err) => {
+          throw new Error(err)
+        })
+        const request = store.getAll()
+
+        request.onerror = (event: Event) => {
+          const target = event.target as IDBRequest
+
+          toast.error(getErrorMessage(target?.error as Error))
+          console.error(target?.error)
+
+          resolve([])
+        }
+
+        request.onsuccess = (event: Event) => {
+          const target = event.target as IDBRequest
+
+          const data = filterExpiredStories(target.result).then((data) =>
+            data.toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+          )
+
+          resolve(data)
+        }
       })
-      const request = store.getAll()
-
-      request.onerror = (event: Event) => {
-        const target = event.target as IDBRequest
-
-        toast.error(getErrorMessage(target?.error as Error))
-        console.error(target?.error)
-
-        resolve([])
-      }
-
-      request.onsuccess = (event: Event) => {
-        const target = event.target as IDBRequest
-
-        const data = filterExpiredStories(target.result).then((data) =>
-          data.toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
-        )
-
-        resolve(data)
-      }
-    })
+      .catch((err) => Promise.reject(new Error(err)))
   })
 
 export const clearImagesFromDB = async () =>
