@@ -8,7 +8,7 @@ const ProgressComponent = ({ progressValue }: { progressValue: number }) => {
         style={{
           width: `${getPercentage(progressValue, STORY_TIMEOUT)}%`,
         }}
-        className="col-start-1 row-start-1 h-2 w-0 bg-rose-600 transition-all"
+        className="col-start-1 row-start-1 h-2 w-0 bg-rose-600 transition-all duration-100 ease-linear"
       ></div>
     </div>
   )
