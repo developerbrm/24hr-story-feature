@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
+import { Flip } from 'react-toastify'
 import { StoriesTypeArr, StoryType } from '../Context/StoriesContextProvider'
 import { deleteStory } from '../db'
-import { Flip } from 'react-toastify'
 
 export const STORY_TIMEOUT = 5000
 export const STORY_PROGRESS_INTERVAL = 100
@@ -115,3 +115,28 @@ export const commonToastOptions = {
 
 export const getPercentage = (num: number, total: number) =>
   Math.round((num / total) * 100)
+
+export const startProgressInterval = (
+  setProgressValue: React.Dispatch<React.SetStateAction<number>>,
+  pauseProgress: boolean
+): number => {
+  const intervalId = setInterval(() => {
+    console.log(intervalId)
+
+    setProgressValue((prevValue) => {
+      if (pauseProgress) return prevValue
+
+      const newValue = prevValue + STORY_PROGRESS_INTERVAL
+
+      if (newValue >= STORY_TIMEOUT) {
+        clearInterval(intervalId)
+
+        return STORY_TIMEOUT
+      }
+
+      return newValue
+    })
+  }, STORY_PROGRESS_INTERVAL)
+
+  return intervalId
+}

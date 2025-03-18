@@ -1,11 +1,11 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { IoClose, IoPause, IoPlay } from 'react-icons/io5'
 import { StoriesContext } from '../../Context/StoriesContext'
 import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
 import { updateImagesDB } from '../../db'
-import { STORY_PROGRESS_INTERVAL, STORY_TIMEOUT } from '../../utilities'
+import { startProgressInterval, STORY_TIMEOUT } from '../../utilities'
 import ProgressComponent from './ProgressComponent'
 
 dayjs.extend(relativeTime)
@@ -21,7 +21,10 @@ const ImagePreviewModal = () => {
 
   const [progressValue, setProgressValue] = useState(0)
   const [pauseProgress, setPauseProgress] = useState(false)
-  const story = stories?.[currentSelectedStory]
+  const story = useMemo(
+    () => stories?.[currentSelectedStory],
+    [currentSelectedStory, stories]
+  )
 
   const handlePausePlay = (type: 'pause' | 'play') => {
     setPauseProgress(type === 'pause')
@@ -88,26 +91,16 @@ const ImagePreviewModal = () => {
   ])
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setProgressValue((prevValue) => {
-        if (pauseProgress) return prevValue
+    if (progressValue === STORY_TIMEOUT) {
+      setProgressValue(0)
+    }
 
-        const newValue = prevValue + STORY_PROGRESS_INTERVAL
-
-        if (newValue >= STORY_TIMEOUT) {
-          clearInterval(intervalId)
-
-          return STORY_TIMEOUT
-        }
-
-        return newValue
-      })
-    }, STORY_PROGRESS_INTERVAL)
+    const intervalId = startProgressInterval(setProgressValue, pauseProgress)
 
     return () => {
       clearInterval(intervalId)
     }
-  }, [pauseProgress])
+  }, [story, progressValue, pauseProgress])
 
   if (!story) return
 
@@ -134,7 +127,7 @@ const ImagePreviewModal = () => {
             />
           </div>
 
-          <p className="absolute top-2 z-10 flex h-10 w-full items-center justify-start gap-2 truncate bg-gradient-to-r from-white/90 via-transparent to-transparent px-2 text-ellipsis text-slate-600 backdrop-blur-xs">
+          <p className="absolute top-2 z-20 flex h-10 w-full items-center justify-start gap-2 truncate bg-gradient-to-r from-white/90 via-transparent to-transparent px-2 text-ellipsis text-slate-600 backdrop-blur-xs">
             <span className="text-md font-semibold capitalize">
               {dayjs(story.createdAt).fromNow()}
             </span>
@@ -151,7 +144,12 @@ const ImagePreviewModal = () => {
             src={story.data}
             alt={story.fileName}
             title={story.fileName}
-            className={`absolute inset-0 block h-full w-full touch-pan-x overflow-hidden object-cover object-center`}
+            className={`absolute inset-0 z-10 block h-full w-full touch-pan-x overflow-hidden object-contain object-center`}
+          />
+          <img
+            src={story.data}
+            alt={story.fileName}
+            className={`pointer-events-none absolute inset-0 block h-full w-full overflow-hidden object-cover object-center blur-xs`}
           />
         </div>
         <form method="dialog" className="modal-backdrop">

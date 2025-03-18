@@ -2,7 +2,7 @@ import { getPercentage, STORY_TIMEOUT } from '../../utilities'
 
 const ProgressComponent = ({ progressValue }: { progressValue: number }) => {
   return (
-    <div className="absolute top-0 right-0 left-0 z-10 grid w-full grid-cols-1 grid-rows-1">
+    <div className="absolute top-0 right-0 left-0 z-30 grid w-full grid-cols-1 grid-rows-1">
       <div className="col-start-1 row-start-1 h-2 w-full bg-rose-300"></div>
       <div
         style={{
