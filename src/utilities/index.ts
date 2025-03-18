@@ -1,14 +1,15 @@
 import dayjs from 'dayjs'
+import { Flip } from 'react-toastify'
 import { StoriesTypeArr, StoryType } from '../Context/StoriesContextProvider'
 import { deleteStory } from '../db'
-import { Flip } from 'react-toastify'
 
-export const PROGRESS_DELAY = 3000
+export const STORY_TIMEOUT = 5000
+export const STORY_PROGRESS_INTERVAL = 100
 export const commonStoriesClasses = `grid aspect-square w-16 cursor-pointer place-content-center rounded-full shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]`
 
 export const expiryControlObj: { value: number; unit: dayjs.ManipulateType } = {
-  value: 1,
-  unit: 'minutes',
+  value: 24,
+  unit: 'hours',
 }
 
 export const handleFileItem = async (file: File) =>
@@ -110,4 +111,32 @@ export const handleOnExpiration = (
 export const commonToastOptions = {
   autoClose: 2000,
   transition: Flip,
+}
+
+export const getPercentage = (num: number, total: number) =>
+  Math.round((num / total) * 100)
+
+export const startProgressInterval = (
+  setProgressValue: React.Dispatch<React.SetStateAction<number>>,
+  pauseProgress: boolean
+): number => {
+  const intervalId = setInterval(() => {
+    console.log(intervalId)
+
+    setProgressValue((prevValue) => {
+      if (pauseProgress) return prevValue
+
+      const newValue = prevValue + STORY_PROGRESS_INTERVAL
+
+      if (newValue >= STORY_TIMEOUT) {
+        clearInterval(intervalId)
+
+        return STORY_TIMEOUT
+      }
+
+      return newValue
+    })
+  }, STORY_PROGRESS_INTERVAL)
+
+  return intervalId
 }

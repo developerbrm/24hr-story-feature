@@ -18,7 +18,7 @@ const AddStory = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return
 
-    const toastId = toast.loading('Adding images')
+    const toastId = toast.loading('Updating stories')
 
     const allPromises = [...e.target.files].map(handleFileItem)
 

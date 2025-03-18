@@ -21,17 +21,23 @@ const StoryItem = (props: IStoryItem) => {
 
   if (!story) return
 
-  const handleStoryClick = (story: StoryType) => {
+  const handleStoryClick = (s: StoryType) => {
     setStories(
       (stories) =>
-        stories?.map((s, index) => {
-          const match = s.fileName === story.fileName
-          const finalStory = match ? { ...s, isWatched: true } : s
+        stories?.map((story, index) => {
+          const match = story.fileName === s.fileName
 
-          updateImagesDB([finalStory])
+          if (story.isWatched && match) {
+            setCurrentSelectedStory(index)
+
+            return story
+          }
+
+          const finalStory = match ? { ...story, isWatched: true } : story
 
           if (match) {
             setCurrentSelectedStory(index)
+            updateImagesDB([finalStory])
           }
 
           return finalStory

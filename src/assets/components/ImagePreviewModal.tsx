@@ -1,16 +1,14 @@
-import { IoClose } from 'react-icons/io5'
-import { Delay, PROGRESS_DELAY } from '../../utilities'
-import { StoriesContext } from '../../Context/StoriesContext'
-import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
-import { useCallback, useContext, useEffect, useState } from 'react'
-import ProgressComponent from './ProgressComponent'
-import { updateImagesDB } from '../../db'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { IoClose, IoPause, IoPlay } from 'react-icons/io5'
+import { StoriesContext } from '../../Context/StoriesContext'
+import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
+import { updateImagesDB } from '../../db'
+import { startProgressInterval, STORY_TIMEOUT } from '../../utilities'
+import ProgressComponent from './ProgressComponent'
 
 dayjs.extend(relativeTime)
-
-const d = new Delay()
 
 const ImagePreviewModal = () => {
   const {
@@ -21,15 +19,38 @@ const ImagePreviewModal = () => {
     setStories,
   } = useContext<StoriesContextInterface>(StoriesContext)
 
-  const [showProgressBar, setShowProgressBar] = useState(false)
-  const story = stories?.[currentSelectedStory]
+  const [progressValue, setProgressValue] = useState(0)
+  const [pauseProgress, setPauseProgress] = useState(false)
+  const story = useMemo(
+    () => stories?.[currentSelectedStory],
+    [currentSelectedStory, stories]
+  )
+
+  const handlePausePlay = (type: 'pause' | 'play') => {
+    setPauseProgress(type === 'pause')
+  }
+
+  const handleImagePointerDown = (e: React.PointerEvent<HTMLImageElement>) => {
+    setPauseProgress(true)
+
+    console.log(e)
+  }
+
+  const handleImagePointerUp = (e: React.PointerEvent<HTMLImageElement>) => {
+    setPauseProgress(false)
+
+    console.log(e)
+  }
 
   const updateWatchedState = useCallback(
     (newValue: number) => {
       setStories((stories) => {
         const newStories =
           stories?.map((story, index) => {
-            if (index === newValue) {
+            const match = index === newValue
+
+            if (story.isWatched && match) return story
+            if (match) {
               const newStory = { ...story, isWatched: true }
 
               updateImagesDB([newStory])
@@ -47,30 +68,39 @@ const ImagePreviewModal = () => {
   )
 
   useEffect(() => {
-    setShowProgressBar(true)
+    if (progressValue !== STORY_TIMEOUT) return
 
-    d.delay(PROGRESS_DELAY, () => {
-      setCurrentSelectedStory((prevValue) => {
-        const n = stories?.length ?? 0
+    setCurrentSelectedStory((prevValue) => {
+      const n = stories?.length ?? 0
 
-        if (n <= prevValue + 1) {
-          handleImagePreviewModalOpenClose(false)
-        }
+      if (n <= prevValue + 1) {
+        handleImagePreviewModalOpenClose(false)
+      }
 
-        const newValue = prevValue + 1
+      const nextValue = prevValue + 1
 
-        setShowProgressBar(false)
-        updateWatchedState(newValue)
-        return newValue
-      })
+      updateWatchedState(nextValue)
+      return nextValue
     })
   }, [
-    story,
     stories,
     setCurrentSelectedStory,
     updateWatchedState,
     handleImagePreviewModalOpenClose,
+    progressValue,
   ])
+
+  useEffect(() => {
+    if (progressValue === STORY_TIMEOUT) {
+      setProgressValue(0)
+    }
+
+    const intervalId = startProgressInterval(setProgressValue, pauseProgress)
+
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [story, progressValue, pauseProgress])
 
   if (!story) return
 
@@ -81,13 +111,23 @@ const ImagePreviewModal = () => {
         className="modal !bg-transparent backdrop-blur-xs transition-all will-change-auto"
       >
         <div className="modal-box relative h-11/12 w-11/12 !max-w-7xl p-0 shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]">
-          {showProgressBar && <ProgressComponent />}
-          <IoClose
-            className="absolute top-3 right-3 z-50 cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110"
-            onClick={() => handleImagePreviewModalOpenClose(false)}
-          />
+          <ProgressComponent progressValue={progressValue} />
+          <div className="absolute top-3 right-3 z-50 flex gap-1">
+            <IoPause
+              className={`${pauseProgress ? 'hidden' : ''} cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110`}
+              onClick={() => handlePausePlay('pause')}
+            />
+            <IoPlay
+              className={`${pauseProgress ? '' : 'hidden'} cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110`}
+              onClick={() => handlePausePlay('play')}
+            />
+            <IoClose
+              className="cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110"
+              onClick={() => handleImagePreviewModalOpenClose(false)}
+            />
+          </div>
 
-          <p className="absolute top-2 z-10 flex h-10 w-full items-center justify-start gap-2 truncate bg-gradient-to-r from-white/90 via-transparent to-transparent px-2 text-ellipsis text-slate-600 backdrop-blur-xs">
+          <p className="absolute top-2 z-20 flex h-10 w-full items-center justify-start gap-2 truncate bg-gradient-to-r from-white/90 via-transparent to-transparent px-2 text-ellipsis text-slate-600 backdrop-blur-xs">
             <span className="text-md font-semibold capitalize">
               {dayjs(story.createdAt).fromNow()}
             </span>
@@ -98,10 +138,18 @@ const ImagePreviewModal = () => {
           </p>
 
           <img
+            onPointerDown={handleImagePointerDown}
+            onPointerUp={handleImagePointerUp}
+            onPointerCancel={handleImagePointerUp}
             src={story.data}
             alt={story.fileName}
             title={story.fileName}
-            className={`absolute inset-0 block h-full w-full overflow-hidden object-cover object-center`}
+            className={`absolute inset-0 z-10 block h-full w-full touch-pan-x overflow-hidden object-contain object-center`}
+          />
+          <img
+            src={story.data}
+            alt={story.fileName}
+            className={`pointer-events-none absolute inset-0 block h-full w-full overflow-hidden object-cover object-center blur-xs`}
           />
         </div>
         <form method="dialog" className="modal-backdrop">
