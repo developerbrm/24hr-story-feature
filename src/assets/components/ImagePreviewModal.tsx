@@ -144,6 +144,7 @@ const ImagePreviewModal = () => {
             src={story.data}
             alt={story.fileName}
             title={story.fileName}
+            onContextMenu={(e) => e.preventDefault()}
             className={`absolute inset-0 z-10 block h-full w-full touch-pan-x overflow-hidden object-contain object-center`}
           />
           <img
