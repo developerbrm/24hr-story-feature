@@ -3,7 +3,8 @@ import { StoriesTypeArr, StoryType } from '../Context/StoriesContextProvider'
 import { deleteStory } from '../db'
 import { Flip } from 'react-toastify'
 
-export const PROGRESS_DELAY = 3000
+export const STORY_TIMEOUT = 30000
+export const STORY_PROGRESS_INTERVAL = 100
 export const commonStoriesClasses = `grid aspect-square w-16 cursor-pointer place-content-center rounded-full shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]`
 
 export const expiryControlObj: { value: number; unit: dayjs.ManipulateType } = {
@@ -111,3 +112,6 @@ export const commonToastOptions = {
   autoClose: 2000,
   transition: Flip,
 }
+
+export const getPercentage = (num: number, total: number) =>
+  Math.round((num / total) * 100)

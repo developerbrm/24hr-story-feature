@@ -1,16 +1,14 @@
-import { IoClose } from 'react-icons/io5'
-import { Delay, PROGRESS_DELAY } from '../../utilities'
-import { StoriesContext } from '../../Context/StoriesContext'
-import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
-import { useCallback, useContext, useEffect, useState } from 'react'
-import ProgressComponent from './ProgressComponent'
-import { updateImagesDB } from '../../db'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { useCallback, useContext, useEffect, useState } from 'react'
+import { IoClose } from 'react-icons/io5'
+import { StoriesContext } from '../../Context/StoriesContext'
+import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
+import { updateImagesDB } from '../../db'
+import { STORY_PROGRESS_INTERVAL, STORY_TIMEOUT } from '../../utilities'
+import ProgressComponent from './ProgressComponent'
 
 dayjs.extend(relativeTime)
-
-const d = new Delay()
 
 const ImagePreviewModal = () => {
   const {
@@ -21,7 +19,7 @@ const ImagePreviewModal = () => {
     setStories,
   } = useContext<StoriesContextInterface>(StoriesContext)
 
-  const [showProgressBar, setShowProgressBar] = useState(false)
+  const [progressValue, setProgressValue] = useState(0)
   const story = stories?.[currentSelectedStory]
 
   const updateWatchedState = useCallback(
@@ -47,30 +45,47 @@ const ImagePreviewModal = () => {
   )
 
   useEffect(() => {
-    setShowProgressBar(true)
+    if (progressValue !== STORY_TIMEOUT) return
 
-    d.delay(PROGRESS_DELAY, () => {
-      setCurrentSelectedStory((prevValue) => {
-        const n = stories?.length ?? 0
+    setCurrentSelectedStory((prevValue) => {
+      const n = stories?.length ?? 0
 
-        if (n <= prevValue + 1) {
-          handleImagePreviewModalOpenClose(false)
-        }
+      if (n <= prevValue + 1) {
+        handleImagePreviewModalOpenClose(false)
+      }
 
-        const newValue = prevValue + 1
+      const nextValue = prevValue + 1
 
-        setShowProgressBar(false)
-        updateWatchedState(newValue)
-        return newValue
-      })
+      updateWatchedState(nextValue)
+      return nextValue
     })
   }, [
-    story,
     stories,
     setCurrentSelectedStory,
     updateWatchedState,
     handleImagePreviewModalOpenClose,
+    progressValue,
   ])
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setProgressValue((prevValue) => {
+        const newValue = prevValue + STORY_PROGRESS_INTERVAL
+
+        if (newValue >= STORY_TIMEOUT) {
+          clearInterval(intervalId)
+
+          return STORY_TIMEOUT
+        }
+
+        return newValue
+      })
+    }, STORY_PROGRESS_INTERVAL)
+
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [])
 
   if (!story) return
 
@@ -81,7 +96,7 @@ const ImagePreviewModal = () => {
         className="modal !bg-transparent backdrop-blur-xs transition-all will-change-auto"
       >
         <div className="modal-box relative h-11/12 w-11/12 !max-w-7xl p-0 shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]">
-          {showProgressBar && <ProgressComponent />}
+          <ProgressComponent progressValue={progressValue} />
           <IoClose
             className="absolute top-3 right-3 z-50 cursor-pointer text-3xl text-white drop-shadow-[2px_2px_2px_rgba(0,0,0,0.3)] transition-all hover:scale-110"
             onClick={() => handleImagePreviewModalOpenClose(false)}
