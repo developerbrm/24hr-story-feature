@@ -77,8 +77,8 @@ Please follow these guidelines:
 
 ## License
 
-[MIT License]
+MIT License
 
 ## Author
 
-[developerbrm]
+developerbrm
