@@ -113,6 +113,7 @@ const ImagePreviewModal = () => {
 
   useEffect(() => {
     if (!pointerDownXY || !pointerUpXY) return
+    if (pointerUpXY.x === pointerDownXY.x) return
 
     const direction = pointerUpXY.x > pointerDownXY.x ? 'right' : 'left'
     setSwipeDirection(direction)
