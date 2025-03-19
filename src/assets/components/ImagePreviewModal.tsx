@@ -1,19 +1,25 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { IoClose, IoPause, IoPlay } from 'react-icons/io5'
 import { StoriesContext } from '../../Context/StoriesContext'
 import { StoriesContextInterface } from '../../Context/StoriesContextProvider'
 import { updateImagesDB } from '../../db'
-import { startProgressInterval, STORY_TIMEOUT } from '../../utilities'
+import {
+  MINIMUM_SLIDE_PIXELS,
+  startProgressInterval,
+  STORY_TIMEOUT,
+} from '../../utilities'
 import ProgressComponent from './ProgressComponent'
 
 dayjs.extend(relativeTime)
-
-type PointerUPDownXY = {
-  x: number
-  y: number
-} | null
 
 type SwipeDirection = 'left' | 'right' | null
 
@@ -26,6 +32,7 @@ const ImagePreviewModal = () => {
     setStories,
   } = useContext<StoriesContextInterface>(StoriesContext)
 
+  const imageRef = useRef<HTMLImageElement>(null)
   const [progressValue, setProgressValue] = useState(0)
   const [pauseProgress, setPauseProgress] = useState(false)
   const story = useMemo(
@@ -33,24 +40,46 @@ const ImagePreviewModal = () => {
     [currentSelectedStory, stories]
   )
 
-  const [pointerDownXY, setPointerDownXY] = useState<PointerUPDownXY>(null)
-  const [pointerUpXY, setPointerUpXY] = useState<PointerUPDownXY>(null)
   const [swipeDirection, setSwipeDirection] = useState<SwipeDirection>(null)
 
   const handlePausePlay = (type: 'pause' | 'play') => {
     setPauseProgress(type === 'pause')
   }
 
-  const handleImagePointerDown = (e: React.PointerEvent<HTMLImageElement>) => {
-    setPauseProgress(true)
-    setPointerUpXY(null)
-    setPointerDownXY({ x: e.screenX, y: e.screenY })
-  }
+  const handleImagePointerDown = useCallback(
+    (e: PointerEvent) => {
+      const element = imageRef.current as HTMLElement
 
-  const handleImagePointerUp = (e: React.PointerEvent<HTMLImageElement>) => {
-    setPauseProgress(false)
-    setPointerUpXY({ x: e.screenX, y: e.screenY })
-  }
+      element.setPointerCapture(e.pointerId)
+      handlePausePlay('pause')
+
+      const oldX = e.screenX
+      let newX: number
+
+      const handlePointerMove = (e: PointerEvent) => {
+        handlePausePlay('pause')
+        newX = e.screenX
+      }
+
+      const handlePointerUp = (e: PointerEvent) => {
+        handlePausePlay('play')
+
+        element.releasePointerCapture(e.pointerId)
+        element.removeEventListener('pointermove', handlePointerMove)
+        element.removeEventListener('pointerup', handlePointerUp)
+
+        const diff = newX - oldX
+
+        if (Math.abs(diff) > MINIMUM_SLIDE_PIXELS) {
+          setSwipeDirection(diff < 0 ? 'left' : 'right')
+        }
+      }
+
+      element.addEventListener('pointermove', handlePointerMove)
+      element.addEventListener('pointerup', handlePointerUp)
+    },
+    [imageRef, setSwipeDirection]
+  )
 
   const updateWatchedState = useCallback(
     (newIndex: number) => {
@@ -79,6 +108,8 @@ const ImagePreviewModal = () => {
 
   const handleStoryChange = useCallback(
     (isNext = true) => {
+      setProgressValue(0)
+
       setCurrentSelectedStory((prevValue) => {
         const n = stories?.length ?? 0
 
@@ -106,18 +137,13 @@ const ImagePreviewModal = () => {
   useEffect(() => {
     if (!swipeDirection) return
 
+    console.log(swipeDirection)
+
     handleStoryChange(swipeDirection === 'left')
 
+    // cleanup
     setSwipeDirection(null)
   }, [swipeDirection, handleStoryChange])
-
-  useEffect(() => {
-    if (!pointerDownXY || !pointerUpXY) return
-    if (pointerUpXY.x === pointerDownXY.x) return
-
-    const direction = pointerUpXY.x > pointerDownXY.x ? 'right' : 'left'
-    setSwipeDirection(direction)
-  }, [pointerUpXY, pointerDownXY])
 
   useEffect(() => {
     if (progressValue !== STORY_TIMEOUT) return
@@ -143,6 +169,16 @@ const ImagePreviewModal = () => {
       clearInterval(intervalId)
     }
   }, [story, progressValue, pauseProgress])
+
+  useEffect(() => {
+    if (!imageRef.current) return
+    const image = imageRef.current
+    image.addEventListener('pointerdown', handleImagePointerDown)
+
+    return () => {
+      image.removeEventListener('pointerdown', handleImagePointerDown)
+    }
+  }, [imageRef, handleImagePointerDown])
 
   if (!story) return
 
@@ -181,19 +217,18 @@ const ImagePreviewModal = () => {
 
           <img
             draggable={false}
-            onPointerDownCapture={handleImagePointerDown}
-            onPointerUpCapture={handleImagePointerUp}
+            ref={imageRef}
             src={story.data}
             alt={story.fileName}
             title={story.fileName}
             onContextMenu={(e) => e.preventDefault()}
-            className={`absolute inset-0 z-10 block h-full w-full touch-pan-x overflow-hidden object-contain object-center`}
+            className={`absolute inset-0 z-10 block h-full w-full touch-none overflow-hidden object-contain object-center selection:bg-transparent`}
           />
           <img
             draggable={false}
             src={story.data}
             alt={story.fileName}
-            className={`pointer-events-none absolute inset-0 block h-full w-full overflow-hidden object-cover object-center blur-xs`}
+            className={`pointer-events-none absolute inset-0 block h-full w-full overflow-hidden object-cover object-center blur-xs selection:bg-transparent`}
           />
         </div>
         <form method="dialog" className="modal-backdrop">

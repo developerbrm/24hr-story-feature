@@ -3,6 +3,7 @@ import { Flip } from 'react-toastify'
 import { StoriesTypeArr, StoryType } from '../Context/StoriesContextProvider'
 import { deleteStory } from '../db'
 
+export const MINIMUM_SLIDE_PIXELS = 20
 export const STORY_TIMEOUT = 5000
 export const STORY_PROGRESS_INTERVAL = 100
 export const commonStoriesClasses = `grid aspect-square w-16 cursor-pointer place-content-center rounded-full shadow-[2px_2px_5px_1px_rgba(0,0,0,0.25)]`
