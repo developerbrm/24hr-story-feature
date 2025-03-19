@@ -12,7 +12,11 @@ function App() {
         <HelperSection />
       </div>
 
-      <ToastContainer autoClose={1500} transition={Flip} />
+      <ToastContainer
+        autoClose={1500}
+        transition={Flip}
+        position={window.innerWidth > 600 ? 'top-right' : 'bottom-center'}
+      />
     </StoriesContextProvider>
   )
 }
